@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    compileSdk 31
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.xuanfeng.browser"
         minSdk 23
-        targetSdk 31
+        targetSdk 34
         versionCode 3
         versionName "3.1"
     }
