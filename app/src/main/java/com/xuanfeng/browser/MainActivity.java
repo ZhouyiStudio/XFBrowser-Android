@@ -596,7 +596,7 @@ private String getEngineName(String engineValue) {
         webSettings.setAllowContentAccess(true);
         webSettings.setDatabaseEnabled(true);
         webSettings.setGeolocationEnabled(true);
-        webSettings.setAppCacheEnabled(true);
+        // setAppCacheEnabled was removed in newer Android WebView, cache mode is already set above
         webSettings.setLoadsImagesAutomatically(true);
         webSettings.setBlockNetworkImage(false);
         webSettings.setBlockNetworkLoads(false);
