@@ -1,0 +1,17 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.MyApplication" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="android:colorPrimary">@color/xf_primary</item>
+        <!-- Darker variant for status bar -->
+        <item name="android:colorPrimaryDark">@color/xf_primary_dark</item>
+        <!-- Accent color for controls -->
+        <item name="android:colorAccent">@color/xf_accent</item>
+        <!-- Status bar color -->
+        <item name="android:statusBarColor">@color/xf_primary_dark</item>
+        <!-- Navigation bar color -->
+        <item name="android:navigationBarColor">@color/xf_primary_dark</item>
+        <!-- Window background -->
+        <item name="android:windowBackground">@color/xf_background</item>
+    </style>
+</resources>
