@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# AtomCode local-scope configs (machine-specific)
+.atomcode/local/
