@@ -1,0 +1,46 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:          # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: 设置 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 接受 Android SDK 许可
+        run: |
+          yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+
+      - name: 安装编译所需的 SDK 组件
+        run: |
+          sdkmanager "platforms;android-31" "build-tools;31.0.0" --sdk_root=$ANDROID_SDK_ROOT
+
+      - name: 授予 gradlew 执行权限
+        run: chmod +x gradlew
+
+      - name: 编译 Release APK
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: 上传 APK 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: XFBrowser-APK
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
