@@ -4,8 +4,6 @@
 
 # 重打包到根目录（类名全变）
 -repackageclasses ''
--flattenpackagehierarchy ''
--useuniqueclassmembernames
 
 # 混淆字典
 -obfuscationdictionary proguard-dictionary.txt
