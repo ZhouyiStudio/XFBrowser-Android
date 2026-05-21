@@ -1,0 +1,10 @@
+{
+  "minSdkVersion": 23.0,
+  "viewBindingEnabled": false,
+  "libraries": "[]",
+  "useR8": true,
+  "targetSdkVersion": 31.0,
+  "versionName": "3.1",
+  "versionCode": 3.0,
+  "zipAlignEnabled": true
+}

@@ -1,0 +1,12 @@
+<resources>
+    <!-- set开关 -->
+    <style name="XFSwitch">
+    <item name="android:thumb">@drawable/xf_switch_thumb</item>
+    <item name="android:track">@drawable/xf_switch_track</item>
+    <item name="android:showText">false</item>
+    <item name="android:textOn"></item>
+    <item name="android:textOff"></item>
+    <item name="android:scaleX">1.5</item>
+    <item name="android:scaleY">1.5</item>
+</style>
+</resources>
