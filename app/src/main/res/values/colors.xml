@@ -21,4 +21,13 @@
     <color name="xf_error">#E53935</color>
     <color name="xf_success">#43A047</color>
     <color name="xf_progress_track">#BBDEFB</color>
+
+    <!-- Dark Mode -->
+    <color name="xf_dark_background">#FF121212</color>
+    <color name="xf_dark_surface">#FF1E1E1E</color>
+    <color name="xf_dark_surface2">#FF2D2D2D</color>
+    <color name="xf_dark_text_primary">#FFE0E0E0</color>
+    <color name="xf_dark_text_secondary">#FF9E9E9E</color>
+    <color name="xf_dark_divider">#FF424242</color>
+    <color name="xf_dark_progress_track">#FF37474F</color>
 </resources>

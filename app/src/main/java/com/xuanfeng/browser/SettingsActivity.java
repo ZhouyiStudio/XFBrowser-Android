@@ -64,6 +64,8 @@ public class SettingsActivity extends Activity {
                 "network_mode", "internet",
                 new String[]{"Internet", "Xuanfeng Network"},
                 new String[]{"internet", "xf"});
+        addDivider(browseCard);
+        addSwitchItem(browseCard, "开发者工具", "启用 WebView 远程调试 (需重启)", "devtools_enabled", false);
         root.addView(browseCard);
 
         // ====== 界面设置 ======
@@ -71,6 +73,8 @@ public class SettingsActivity extends Activity {
         addSwitchItem(uiCard, "隐藏标题", "隐藏主界面顶部的标题", "hide_title", false);
         addDivider(uiCard);
         addSwitchItem(uiCard, "选中网址栏时全选", "点击网址栏自动全选文字", "select_all_on_focus", true);
+        addDivider(uiCard);
+        addSwitchItem(uiCard, "深色模式", "切换深色/浅色主题", "dark_mode", false);
         root.addView(uiCard);
 
         // ====== 颜色设置 ======
