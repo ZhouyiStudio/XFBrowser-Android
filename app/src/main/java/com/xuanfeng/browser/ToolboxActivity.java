@@ -69,6 +69,8 @@ public class ToolboxActivity extends Activity {
         modeCard.addView(createToggleItem("文本模式", "text_mode", false));
         addDivider(modeCard);
         modeCard.addView(createToggleItem("禁用JavaScript", "js_disabled", false));
+        addDivider(modeCard);
+        modeCard.addView(createToggleItem("阅读模式", "reading_mode", false));
         root.addView(modeCard);
 
         // 底部留白

@@ -139,6 +139,8 @@ public class MainActivity extends Activity {
     private BroadcastReceiver toolboxReceiver;
     private BroadcastReceiver colorChangeReceiver;
     private BroadcastReceiver devtoolsReceiver;
+    private BroadcastReceiver fontReceiver;
+    private BroadcastReceiver readingModeReceiver;
     
 
     private LinearLayout historyPage;
@@ -176,6 +178,10 @@ public class MainActivity extends Activity {
                         toggleSearchFloat();
                     } else if ("CRAWL".equals(action)) {
                         showCrawlDialog();
+                    } else if ("READING_MODE".equals(action)) {
+                        // 阅读模式由广播接收器通过设置变化触发，实际切换在 READING_MODE_CHANGED 中
+                        prefs.edit().putBoolean("reading_mode", !prefs.getBoolean("reading_mode", false)).apply();
+                        sendBroadcast(new Intent("com.xuanfeng.browser.READING_MODE_CHANGED"));
                     }
                 }
             }
@@ -187,6 +193,17 @@ public class MainActivity extends Activity {
         alwaysLog = prefs.getBoolean("always_log", false);
         urlMode = prefs.getString("url_mode", "always");
         devtoolsEnabled = prefs.getBoolean("devtools_enabled", false);
+
+        // 字体变化广播
+        fontReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if ("com.xuanfeng.browser.CUSTOM_FONT_CHANGED".equals(intent.getAction())) {
+                    applyCustomFont();
+                }
+            }
+        };
+        registerReceiver(fontReceiver, new IntentFilter("com.xuanfeng.browser.CUSTOM_FONT_CHANGED"));
         
         // 标题隐藏广播
         titleHideReceiver = new BroadcastReceiver() {
@@ -248,8 +265,21 @@ public class MainActivity extends Activity {
             }
         };
         registerReceiver(devtoolsReceiver, new IntentFilter("com.xuanfeng.browser.DEVTOOLS_ENABLED_CHANGED"));
+
+        // 阅读模式广播
+        readingModeReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if ("com.xuanfeng.browser.READING_MODE_CHANGED".equals(intent.getAction())) {
+                    boolean enabled = prefs.getBoolean("reading_mode", false);
+                    setReadingMode(enabled);
+                }
+            }
+        };
+        registerReceiver(readingModeReceiver, new IntentFilter("com.xuanfeng.browser.READING_MODE_CHANGED"));
         
         setupWebView();
+        applyCustomFont(); // 启动时应用字体
         setupListeners();
         
         // 强关同步存设置
@@ -275,6 +305,7 @@ public class MainActivity extends Activity {
         SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
         safeBrowsingEnabled = prefs.getBoolean("safe_browsing_enabled", false);
         applyColors(); // 从设置返回时刷新颜色
+        applyCustomFont(); // 从设置返回时刷新字体
     }
 
     @Override
@@ -294,6 +325,12 @@ public class MainActivity extends Activity {
         }
         if (devtoolsReceiver != null) {
             unregisterReceiver(devtoolsReceiver);
+        }
+        if (fontReceiver != null) {
+            unregisterReceiver(fontReceiver);
+        }
+        if (readingModeReceiver != null) {
+            unregisterReceiver(readingModeReceiver);
         }
     }
 
@@ -543,6 +580,17 @@ private String getEngineName(String engineValue) {
         settings.setLoadWithOverviewMode(true);
         settings.setUseWideViewPort(true);
         
+        // 应用字体设置到新标签
+        String font = prefs.getString("custom_font", "default");
+        if (font != null && !"default".equals(font)) {
+            settings.setStandardFontFamily(font);
+            settings.setFixedFontFamily(font);
+            settings.setSerifFontFamily(font);
+            settings.setSansSerifFontFamily(font);
+            settings.setCursiveFontFamily(font);
+            settings.setFantasyFontFamily(font);
+        }
+        
         newWebView.setVisibility(View.GONE);
         webViewList.add(newWebView);
         
@@ -712,6 +760,12 @@ public void onPageFinished(WebView view, String url) {
     
     if (isCrawling) {
 //        saveCurrentPageForCrawl(url);
+    }
+    
+    // 页面加载后自动应用阅读模式
+    boolean readingMode = prefs.getBoolean("reading_mode", false);
+    if (readingMode) {
+        setReadingMode(true);
     }
 }
             /*
@@ -1105,6 +1159,7 @@ public void onPageFinished(WebView view, String url) {
             {"阻止音视频自动播放", prefs.getBoolean("block_autoplay", false) ? "开" : "关", "ic_stop"},
             {"文本模式", prefs.getBoolean("text_mode", false) ? "开" : "关", "ic_source"},
             {"禁用JavaScript", prefs.getBoolean("js_disabled", false) ? "开" : "关", "ic_close"},
+            {"阅读模式", prefs.getBoolean("reading_mode", false) ? "开" : "关", "ic_source"},
             {"编辑网页源码", "", "ic_source"},
             {"页内查找", "", "ic_find_in_page"},
             {"爬取", "", "ic_crawl"},
@@ -1186,21 +1241,27 @@ public void onPageFinished(WebView view, String url) {
                         setJavaScriptEnabled(!js);
                         break;
                     }
-                    case 4:
+                    case 4: {
+                        boolean reading = !prefs.getBoolean("reading_mode", false);
+                        prefs.edit().putBoolean("reading_mode", reading).apply();
+                        setReadingMode(reading);
+                        break;
+                    }
+                    case 5:
                         showEditSourceDialog();
                         break;
-                    case 5:
+                    case 6:
                         toggleSearchFloat();
                         break;
-                    case 6:
+                    case 7:
                         showCrawlDialog();
                         break;
-                    case 7: {
+                    case 8: {
                         Intent intent = new Intent(MainActivity.this, DownloadActivity.class);
                         startActivity(intent);
                         break;
                     }
-                    case 8: {
+                    case 9: {
                         Intent intent = new Intent(MainActivity.this, ProtocolConnectActivity.class);
                         startActivity(intent);
                         break;
@@ -2463,6 +2524,110 @@ historyPage.setVisibility(View.GONE);
             settings.setUserAgentString(normalUA);
         }
     }
+    
+    private void applyCustomFont() {
+        try {
+            String font = prefs.getString("custom_font", "default");
+            if (font == null || "default".equals(font)) {
+                // 系统默认，无需额外操作
+                return;
+            }
+            // 将字体名映射为 Android Typeface
+            Typeface tf = null;
+            switch (font) {
+                case "宋体":
+                    tf = Typeface.create("宋体", Typeface.NORMAL);
+                    break;
+                case "黑体":
+                    tf = Typeface.create("黑体", Typeface.NORMAL);
+                    break;
+                case "楷体":
+                    tf = Typeface.create("楷体", Typeface.NORMAL);
+                    break;
+                case "微软雅黑":
+                    tf = Typeface.create("微软雅黑", Typeface.NORMAL);
+                    break;
+                case "sans-serif":
+                    tf = Typeface.create("sans-serif", Typeface.NORMAL);
+                    break;
+                case "serif":
+                    tf = Typeface.create("serif", Typeface.NORMAL);
+                    break;
+                case "monospace":
+                    tf = Typeface.create("monospace", Typeface.NORMAL);
+                    break;
+                default:
+                    return;
+            }
+            
+            // 应用字体到所有 WebView
+            for (WebView wv : webViewList) {
+                WebSettings ws = wv.getSettings();
+                ws.setStandardFontFamily(font);
+                ws.setFixedFontFamily(font);
+                ws.setSerifFontFamily(font);
+                ws.setSansSerifFontFamily(font);
+                ws.setCursiveFontFamily(font);
+                ws.setFantasyFontFamily(font);
+            }
+            
+            // 应用字体到 UI 元素
+            if (etUrl != null) {
+                etUrl.setTypeface(tf);
+            }
+            if (tvTabCount != null) {
+                tvTabCount.setTypeface(tf);
+            }
+            // 注意：标题栏等位置由 applyColors 定时刷新，暂不支持 Typeface 刷新
+        } catch (Exception e) {
+            // 忽略
+        }
+    }
+    
+    private void setReadingMode(boolean enable) {
+        try {
+            WebView wv = getCurrentWebView();
+            if (wv == null) return;
+            
+            if (enable) {
+                // 阅读模式 CSS：清除复杂布局，聚焦正文
+                String css = "body * { max-width: 100% !important; } " +
+                        "header, footer, nav, aside, .sidebar, .ad, .advertisement, " +
+                        "#header, #footer, #nav, #sidebar, #ad, .ads, .adsbygoogle, " +
+                        ".recommend, .related, .comment, #comment, .comments, " +
+                        ".share, .social, .menu, #menu, .widget, #widget, .toolbar, " +
+                        ".bottom, .footer, .top-bar, .nav-bar { display: none !important; } " +
+                        "body { background: #fff !important; color: #333 !important; " +
+                        "  font-size: 18px !important; line-height: 1.8 !important; " +
+                        "  padding: 16px !important; max-width: 720px !important; " +
+                        "  margin: 0 auto !important; } " +
+                        "a { color: #1565C0 !important; } " +
+                        "img { max-width: 100% !important; height: auto !important; } " +
+                        "p { margin: 0.8em 0 !important; } " +
+                        "h1, h2, h3, h4 { margin: 1em 0 0.5em !important; }";
+                String js = "javascript:(function(){" +
+                        "var style = document.createElement('style');" +
+                        "style.type = 'text/css';" +
+                        "style.id = 'xf-reading-mode-style';" +
+                        "style.textContent = " + JSON.stringify(css) + ";" +
+                        "document.head.appendChild(style);" +
+                        "})()";
+                wv.loadUrl(js);
+                Toast.makeText(this, "阅读模式已开启", Toast.LENGTH_SHORT).show();
+            } else {
+                // 关闭阅读模式：移除注入的样式
+                String js = "javascript:(function(){" +
+                        "var style = document.getElementById('xf-reading-mode-style');" +
+                        "if (style) style.parentNode.removeChild(style);" +
+                        "})()";
+                wv.loadUrl(js);
+                Toast.makeText(this, "阅读模式已关闭", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            // 忽略
+        }
+    }
+    
     /*
     private void createF12Float() {
         f12Float = new FrameLayout(this);

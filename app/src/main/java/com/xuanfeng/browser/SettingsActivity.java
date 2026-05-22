@@ -75,6 +75,11 @@ public class SettingsActivity extends Activity {
         addSwitchItem(uiCard, "选中网址栏时全选", "点击网址栏自动全选文字", "select_all_on_focus", true);
         addDivider(uiCard);
         addSwitchItem(uiCard, "深色模式", "切换深色/浅色主题", "dark_mode", false);
+        addDivider(uiCard);
+        addPickerItem(uiCard, "字体", "选择浏览器界面和网页字体",
+                "custom_font", "default",
+                new String[]{"系统默认", "宋体", "黑体", "楷体", "微软雅黑", "Sans Serif", "Serif", "Monospace"},
+                new String[]{"default", "宋体", "黑体", "楷体", "微软雅黑", "sans-serif", "serif", "monospace"});
         root.addView(uiCard);
 
         // ====== 颜色设置 ======
