@@ -2,8 +2,6 @@ plugins {
     id 'com.android.application'
 }
 
-import org.gradle.api.provider.Provider
-
 android {
     namespace "com.xuanfeng.browser"
     compileSdk 34
@@ -41,12 +39,8 @@ android {
 
     applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
-            def gitHashProvider = providers.exec {
-                commandLine("git", "rev-parse", "--short", "HEAD")
-            }.standardOutput.asText.map { it.trim() }
-            output.outputFileName = gitHashProvider.map { hash ->
-                "XFBrowser-${hash}-dev.apk"
-            }
+            def date = new Date().format("yyyyMMdd-HHmm")
+            output.outputFileName = "XFBrowser-${date}-dev.apk"
         }
     }
 }
