@@ -85,7 +85,7 @@ public class MainActivity extends Activity {
     private AutoCompleteTextView etUrl;
     private FrameLayout webviewContainer;
     
-    private Button btnBack, btnForward, btnRefresh, btnDesktop, btnSettings, btnMenu, btnTabs;
+    private ImageButton btnBack, btnForward, btnRefresh, btnDesktop, btnSettings, btnMenu, btnTabs;
     private ProgressBar progressBar;
     private boolean isAdBlockEnabled = false;
     private boolean safeBrowsingEnabled = false;
@@ -288,46 +288,46 @@ if (spinnerNetwork != null) {
     webviewContainer = findViewById(R.id.webview_container);
     progressBar = findViewById(R.id.progress_bar);
     
-etUrl.setOnFocusChangeListener((v, hasFocus) -> {
-    boolean selectAllOnFocus = prefs.getBoolean("select_all_on_focus", true);
-    
-    if (hasFocus) {
-        String url = getCurrentWebView().getUrl();
-        if (url != null && !url.isEmpty()) {
-            etUrl.setText(url);
-            if (selectAllOnFocus) {
-                etUrl.dismissDropDown();
-                etUrl.post(() -> etUrl.selectAll());
-            }
-        }
-        refreshHistoryPage(url);
-        historyPage.setVisibility(View.VISIBLE);
-    } else {
-        String title = getCurrentWebView().getTitle();
-        if (title != null && !title.isEmpty()) {
-            etUrl.setText(title);
-        } else {
-            etUrl.setText(getCurrentWebView().getUrl());
-        }
-        historyPage.setVisibility(View.GONE);
-    }
-});
-    
-    etUrl.addTextChangedListener(new TextWatcher() {
-    @Override
-    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-    @Override
-    public void onTextChanged(CharSequence s, int start, int before, int count) {}
-    @Override
-    public void afterTextChanged(Editable s) {
-        if (etUrl.hasFocus()) {
-            refreshHistoryPage(s.toString());
-        }
-    }
-});
-    
-    historyPage = findViewById(R.id.history_page);
+historyPage = findViewById(R.id.history_page);
 historyListView = findViewById(R.id.history_list_view);
+
+etUrl.setOnFocusChangeListener((v, hasFocus) -> {
+boolean selectAllOnFocus = prefs.getBoolean("select_all_on_focus", true);
+
+if (hasFocus) {
+    String url = getCurrentWebView().getUrl();
+    if (url != null && !url.isEmpty()) {
+        etUrl.setText(url);
+        if (selectAllOnFocus) {
+            etUrl.dismissDropDown();
+            etUrl.post(() -> etUrl.selectAll());
+        }
+    }
+    refreshHistoryPage(url);
+    historyPage.setVisibility(View.VISIBLE);
+} else {
+    String title = getCurrentWebView().getTitle();
+    if (title != null && !title.isEmpty()) {
+        etUrl.setText(title);
+    } else {
+        etUrl.setText(getCurrentWebView().getUrl());
+    }
+    historyPage.setVisibility(View.GONE);
+}
+});
+
+etUrl.addTextChangedListener(new TextWatcher() {
+@Override
+public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+@Override
+public void onTextChanged(CharSequence s, int start, int before, int count) {}
+@Override
+public void afterTextChanged(Editable s) {
+    if (etUrl.hasFocus()) {
+        refreshHistoryPage(s.toString());
+    }
+}
+});
 
 historyPageAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new ArrayList<>());
 historyListView.setAdapter(historyPageAdapter);
@@ -955,10 +955,10 @@ public void onPageFinished(WebView view, String url) {
         if (getCurrentWebView() != null && progressBar.getVisibility() == View.VISIBLE) {
             getCurrentWebView().stopLoading();
             progressBar.setVisibility(View.GONE);
-            btnRefresh.setBackgroundResource(R.drawable.ic_refresh);
+            btnRefresh.setImageResource(R.drawable.ic_refresh);
         } else {
             getCurrentWebView().reload();
-            btnRefresh.setBackgroundResource(R.drawable.ic_stop);
+            btnRefresh.setImageResource(R.drawable.ic_stop);
         }
     }
 });
@@ -972,12 +972,12 @@ public void onPageFinished(WebView view, String url) {
             //PC-PE
             String mobileUA = "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
             getCurrentWebView().getSettings().setUserAgentString(mobileUA);
-            btnDesktop.setBackgroundResource(R.drawable.ic_mobile);
+            btnDesktop.setImageResource(R.drawable.ic_mobile);
         } else {
             //PE-PC
             String desktopUA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0";
             getCurrentWebView().getSettings().setUserAgentString(desktopUA);
-            btnDesktop.setBackgroundResource(R.drawable.ic_desktop);
+            btnDesktop.setImageResource(R.drawable.ic_desktop);
         }
         getCurrentWebView().reload();
     }
