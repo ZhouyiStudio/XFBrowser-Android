@@ -11,6 +11,9 @@ import android.content.ClipData;
 import android.widget.Toast;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.PorterDuff;
+import android.graphics.Color;
+import android.content.res.ColorStateList;
 import java.util.Map;
 import java.util.HashMap;
 import android.graphics.Bitmap;
@@ -133,6 +136,7 @@ public class MainActivity extends Activity {
     private BroadcastReceiver logReceiver;
     private BroadcastReceiver titleHideReceiver;
     private BroadcastReceiver toolboxReceiver;
+    private BroadcastReceiver colorChangeReceiver;
     
 
     private LinearLayout historyPage;
@@ -212,6 +216,23 @@ public class MainActivity extends Activity {
         
         initViews();
         
+        // 颜色设置广播与应用
+        colorChangeReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (action != null && action.endsWith("_CHANGED")) {
+                    applyColors();
+                }
+            }
+        };
+        IntentFilter colorFilter = new IntentFilter();
+        colorFilter.addAction("com.xuanfeng.browser.XF_PRIMARY_CHANGED");
+        colorFilter.addAction("com.xuanfeng.browser.XF_BACKGROUND_CHANGED");
+        colorFilter.addAction("com.xuanfeng.browser.XF_TOOLBAR_ICON_CHANGED");
+        registerReceiver(colorChangeReceiver, colorFilter);
+        applyColors();
+        
         setupWebView();
         setupListeners();
         
@@ -237,6 +258,7 @@ public class MainActivity extends Activity {
         super.onResume();
         SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
         safeBrowsingEnabled = prefs.getBoolean("safe_browsing_enabled", false);
+        applyColors(); // 从设置返回时刷新颜色
     }
 
     @Override
@@ -250,6 +272,9 @@ public class MainActivity extends Activity {
         }
         if (toolboxReceiver != null) {
             unregisterReceiver(toolboxReceiver);
+        }
+        if (colorChangeReceiver != null) {
+            unregisterReceiver(colorChangeReceiver);
         }
     }
 
@@ -2971,5 +2996,82 @@ public void onBackPressed() {
     @Override
     protected void onPause() {
         super.onPause();
+    }
+
+    // ==================== 颜色设置应用 ====================
+
+    private void applyColors() {
+        try {
+            // 读取颜色设置
+            String primaryHex = prefs.getString("xf_primary", "0xFF1565C0");
+            String bgHex = prefs.getString("xf_background", "0xFFF5F5F5");
+            String iconHex = prefs.getString("xf_toolbar_icon", "0xFF333333");
+
+            int primaryColor = safeParseColor(primaryHex);
+            int bgColor = safeParseColor(bgHex);
+            int iconColor = safeParseColor(iconHex);
+
+            // 根布局背景
+            LinearLayout rootView = findViewById(R.id.root_layout);
+            if (rootView == null) {
+                // 如果布局没有 root_layout ID，直接用 activity_main 的最外层
+                rootView = (LinearLayout) findViewById(android.R.id.content).getRootView();
+            }
+            // 使用窗口背景方式设置
+            getWindow().getDecorView().setBackgroundColor(bgColor);
+
+            // 标题栏背景
+            TextView tvTitle = findViewById(R.id.tv_title);
+            if (tvTitle != null) {
+                tvTitle.setBackgroundColor(bgColor);
+            }
+
+            // 顶部 URL 栏区域背景 (LinearLayout 容器)
+            LinearLayout urlBarContainer = findViewById(R.id.url_bar_container);
+            if (urlBarContainer != null) {
+                urlBarContainer.setBackgroundColor(bgColor);
+            }
+
+            // 底部工具栏背景
+            LinearLayout bottomToolbar = findViewById(R.id.bottom_toolbar);
+            if (bottomToolbar != null) {
+                bottomToolbar.setBackgroundColor(bgColor);
+            }
+
+            // 工具栏图标颜色
+            int[] iconButtons = {
+                    R.id.btn_back, R.id.btn_forward, R.id.btn_refresh,
+                    R.id.btn_desktop, R.id.btn_settings, R.id.btn_toolbox, R.id.btn_tabs
+            };
+            for (int id : iconButtons) {
+                ImageButton btn = findViewById(id);
+                if (btn != null) {
+                    btn.setColorFilter(iconColor, PorterDuff.Mode.SRC_IN);
+                }
+            }
+
+            // 进度条颜色
+            if (progressBar != null) {
+                progressBar.setProgressTintList(ColorStateList.valueOf(primaryColor));
+                progressBar.setProgressBackgroundTintList(ColorStateList.valueOf(bgColor));
+            }
+
+            // 底部工具栏分隔线
+            View divider = findViewById(R.id.toolbar_divider);
+            if (divider != null) {
+                divider.setBackgroundColor(primaryColor);
+            }
+
+        } catch (Exception e) {
+            // 忽略，不阻断主流程
+        }
+    }
+
+    private int safeParseColor(String colorStr) {
+        if (colorStr == null) colorStr = "#FF1565C0";
+        if (colorStr.startsWith("0x") || colorStr.startsWith("0X")) {
+            colorStr = "#" + colorStr.substring(2);
+        }
+        return Color.parseColor(colorStr);
     }
 }
