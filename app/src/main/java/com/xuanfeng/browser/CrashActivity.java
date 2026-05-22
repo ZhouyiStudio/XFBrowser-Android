@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Process;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.File;
@@ -19,7 +19,7 @@ import java.util.Locale;
 public class CrashActivity extends Activity {
     
     private TextView tvLog, tvError, tvProcess;
-    private Button btnExport, btnRestart, btnExit;
+    private ImageButton btnExport, btnRestart, btnExit;
     private String crashLog = "";
     private String crashError = "";
     private String crashProcess = "";

@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -57,11 +58,11 @@ public class TabsActivity extends Activity {
         titleView.setLayoutParams(new LinearLayout.LayoutParams(
             0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         
-        Button newTabBtn = new Button(this);
-        newTabBtn.setText("+");
-        newTabBtn.setTextSize(24);
-        newTabBtn.setTextColor(0xFF333333);
+        ImageButton newTabBtn = new ImageButton(this);
+        newTabBtn.setImageResource(R.drawable.ic_add);
+        newTabBtn.setColorFilter(0xFF333333);
         newTabBtn.setBackgroundColor(0x00FFFFFF);
+        newTabBtn.setLayoutParams(new LinearLayout.LayoutParams(48, 48));
         newTabBtn.setOnClickListener(v -> {
             Intent result = new Intent();
             result.putExtra("action", "new_tab");
@@ -136,10 +137,8 @@ public class TabsActivity extends Activity {
             itemLayout.addView(textLayout);
             
             // 删除按钮
-            Button deleteBtn = new Button(TabsActivity.this);
-            deleteBtn.setText("×");
-            deleteBtn.setTextSize(20);
-            deleteBtn.setTextColor(0xFF999999);
+            ImageButton deleteBtn = new ImageButton(TabsActivity.this);
+            deleteBtn.setImageResource(R.drawable.ic_close);
             deleteBtn.setBackgroundColor(0x00FFFFFF);
             deleteBtn.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,

@@ -132,18 +132,51 @@ public class DownloadActivity extends Activity {
             }
         }
         
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
-            .setTitle("文件信息")
-            .setMessage(info.toString())
-            .setPositiveButton("确定", null);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(16, 8, 16, 8);
         
         if (item.isForeign()) {
-            builder.setNegativeButton("删除", (dialog, which) -> deleteFile(item));
+            layout.addView(createIconRow("ic_close", "删除文件", () -> deleteFile(item)));
         } else {
-       builder.setNeutralButton("更多", (dialog, which) -> showMoreOptions(item));
+            layout.addView(createIconRow("ic_menu", "更多操作", () -> showMoreOptions(item)));
         }
         
-        builder.show();
+        new AlertDialog.Builder(this)
+            .setTitle("文件信息")
+            .setMessage(info.toString())
+            .setView(layout)
+            .setPositiveButton("确定", null)
+            .show();
+    }
+    
+    private LinearLayout createIconRow(String iconName, String label, Runnable onClick) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(12, 16, 12, 16);
+        row.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
+        row.setClickable(true);
+        row.setFocusable(true);
+        row.setBackgroundResource(android.R.drawable.list_selector_background);
+        
+        ImageView iconView = new ImageView(this);
+        int iconRes = getResources().getIdentifier(iconName, "drawable", getPackageName());
+        if (iconRes != 0) iconView.setImageResource(iconRes);
+        iconView.setColorFilter(0xFF757575);
+        iconView.setLayoutParams(new LinearLayout.LayoutParams(36, 36));
+        iconView.setPadding(0, 0, 16, 0);
+        row.addView(iconView);
+        
+        TextView labelView = new TextView(this);
+        labelView.setText(label);
+        labelView.setTextSize(16);
+        labelView.setTextColor(0xFF212121);
+        labelView.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
+        row.addView(labelView);
+        
+        row.setOnClickListener(v -> onClick.run());
+        
+        return row;
     }
     
     private String getStatusText(int status) {
@@ -176,41 +209,38 @@ public class DownloadActivity extends Activity {
     }
     
     private void showMoreOptions(DownloadItem item) {
-        String[] options;
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(16, 8, 16, 8);
+        
         if (item.getStatus() == 1) {
-            options = new String[]{"暂停", "取消下载", "打开文件夹"};
+            layout.addView(createIconRow("ic_stop", "暂停", () -> {
+                downloadManager.pauseDownload(item.getTaskId());
+                refreshList();
+            }));
+            layout.addView(createIconRow("ic_close", "取消下载", () -> {
+                downloadManager.cancelDownload(item.getTaskId());
+                deleteFile(item);
+            }));
         } else if (item.getStatus() == 2) {
-            options = new String[]{"继续", "取消下载", "打开文件夹"};
+            layout.addView(createIconRow("ic_refresh", "继续", () -> {
+                downloadManager.resumeDownload(item.getTaskId());
+                refreshList();
+            }));
+            layout.addView(createIconRow("ic_close", "取消下载", () -> {
+                downloadManager.cancelDownload(item.getTaskId());
+                deleteFile(item);
+            }));
         } else {
-            options = new String[]{"打开文件", "打开文件夹", "删除"};
+            layout.addView(createIconRow("ic_download_mgr", "打开文件", () -> openFile(item)));
+            layout.addView(createIconRow("ic_menu", "打开文件夹", () -> openFolder(item)));
+            layout.addView(createIconRow("ic_close", "删除", () -> deleteFile(item)));
         }
         
         new AlertDialog.Builder(this)
             .setTitle("操作")
-            .setItems(options, (dialog, which) -> {
-                String option = options[which];
-                switch (option) {
-                    case "暂停":
-                        downloadManager.pauseDownload(item.getTaskId());
-                        refreshList();
-                        break;
-                    case "继续":
-                        downloadManager.resumeDownload(item.getTaskId());
-                        refreshList();
-                        break;
-                    case "取消下载":
-                    case "删除":
-                        downloadManager.cancelDownload(item.getTaskId());
-                        deleteFile(item);
-                        break;
-                    case "打开文件":
-                        openFile(item);
-                        break;
-                    case "打开文件夹":
-                        openFolder(item);
-                        break;
-                }
-            })
+            .setView(layout)
+            .setNegativeButton("返回", null)
             .show();
     }
     

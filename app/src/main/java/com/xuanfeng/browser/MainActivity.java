@@ -952,12 +952,13 @@ public void onPageFinished(WebView view, String url) {
         btnRefresh.setOnClickListener(new View.OnClickListener() {
     @Override
     public void onClick(View v) {
-        if ("×".equals(btnRefresh.getText().toString())) {
+        if (getCurrentWebView() != null && getCurrentWebView().isLoading()) {
             getCurrentWebView().stopLoading();
             progressBar.setVisibility(View.GONE);
-            btnRefresh.setText("刷新");
+            btnRefresh.setBackgroundResource(R.drawable.ic_refresh);
         } else {
             getCurrentWebView().reload();
+            btnRefresh.setBackgroundResource(R.drawable.ic_stop);
         }
     }
 });
@@ -971,14 +972,12 @@ public void onPageFinished(WebView view, String url) {
             //PC-PE
             String mobileUA = "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
             getCurrentWebView().getSettings().setUserAgentString(mobileUA);
-            btnDesktop.setText("手机版");
-            //Toast.makeText(MainActivity.this, "已切换为手机版", Toast.LENGTH_SHORT).show();
+            btnDesktop.setBackgroundResource(R.drawable.ic_mobile);
         } else {
             //PE-PC
             String desktopUA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0";
             getCurrentWebView().getSettings().setUserAgentString(desktopUA);
-            btnDesktop.setText("电脑版");
-            //Toast.makeText(MainActivity.this, "正在切换为电脑版，请稍等", Toast.LENGTH_SHORT).show();
+            btnDesktop.setBackgroundResource(R.drawable.ic_desktop);
         }
         getCurrentWebView().reload();
     }
@@ -1066,84 +1065,177 @@ public void onPageFinished(WebView view, String url) {
     //更多
     private void showMenuDialog() {
         SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
-        final String[] items = {
-            "自动刷新: " + (prefs.getBoolean("auto_refresh", true) ? "开" : "关"),
-            "阻止音视频自动播放: " + (prefs.getBoolean("block_autoplay", false) ? "开" : "关"),
-            "文本模式: " + (prefs.getBoolean("text_mode", false) ? "开" : "关"),
-            "禁用JavaScript: " + (prefs.getBoolean("js_disabled", false) ? "开" : "关"),
-            //"F12",
-            "编辑网页源码",
-            "页内查找",
-            "爬取=>",
-            "下载管理=>",
-            "PingHub(test)=>"
+        
+        // 构建图标+文字的自定义列表
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(16, 8, 16, 8);
+        
+        String[][] menuItems = {
+            {"自动刷新", prefs.getBoolean("auto_refresh", true) ? "开" : "关", "ic_settings"},
+            {"阻止音视频自动播放", prefs.getBoolean("block_autoplay", false) ? "开" : "关", "ic_stop"},
+            {"文本模式", prefs.getBoolean("text_mode", false) ? "开" : "关", "ic_source"},
+            {"禁用JavaScript", prefs.getBoolean("js_disabled", false) ? "开" : "关", "ic_close"},
+            {"编辑网页源码", "", "ic_source"},
+            {"页内查找", "", "ic_find_in_page"},
+            {"爬取", "", "ic_crawl"},
+            {"下载管理", "", "ic_download_mgr"},
+            {"PingHub", "", "ic_ping"}
         };
         
-        new AlertDialog.Builder(MainActivity.this)
-            .setTitle("更多")
-            .setItems(items, (dialog, which) -> {
-                switch (which) {
-                    case 0:
+        for (int i = 0; i < menuItems.length; i++) {
+            String label = menuItems[i][0];
+            String status = menuItems[i][1];
+            String icon = menuItems[i][2];
+            
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setPadding(8, 12, 8, 12);
+            row.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
+            row.setClickable(true);
+            row.setFocusable(true);
+            row.setBackgroundResource(android.R.drawable.list_selector_background);
+            
+            // Icon
+            ImageView iconView = new ImageView(this);
+            int iconRes = getResources().getIdentifier(icon, "drawable", getPackageName());
+            if (iconRes != 0) iconView.setImageResource(iconRes);
+            iconView.setColorFilter(0xFF757575);
+            iconView.setLayoutParams(new LinearLayout.LayoutParams(40, 40));
+            iconView.setPadding(0, 0, 16, 0);
+            row.addView(iconView);
+            
+            // Label
+            TextView labelView = new TextView(this);
+            labelView.setText(label);
+            labelView.setTextSize(16);
+            labelView.setTextColor(0xFF212121);
+            labelView.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
+            row.addView(labelView);
+            
+            // Status toggle
+            if (!status.isEmpty()) {
+                TextView statusView = new TextView(this);
+                statusView.setText(status);
+                statusView.setTextSize(14);
+                statusView.setTextColor(0xFF1565C0);
+                statusView.setPadding(8, 0, 0, 0);
+                row.addView(statusView);
+            } else {
+                // 右箭头
+                ImageView arrowView = new ImageView(this);
+                arrowView.setImageResource(R.drawable.ic_forward);
+                arrowView.setColorFilter(0xFFBDBDBD);
+                arrowView.setLayoutParams(new LinearLayout.LayoutParams(24, 24));
+                row.addView(arrowView);
+            }
+            
+            final int index = i;
+            row.setOnClickListener(v -> {
+                switch (index) {
+                    case 0: {
                         boolean auto = !prefs.getBoolean("auto_refresh", true);
                         prefs.edit().putBoolean("auto_refresh", auto).apply();
                         break;
-                    case 1:
+                    }
+                    case 1: {
                         boolean blockAutoplay = !prefs.getBoolean("block_autoplay", false);
                         prefs.edit().putBoolean("block_autoplay", blockAutoplay).apply();
                         setBlockAutoplay(blockAutoplay);
                         Toast.makeText(MainActivity.this, "阻止音视频自动播放:" + (blockAutoplay ? "开" : "关"), Toast.LENGTH_SHORT).show();
                         break;
-                    case 2:
+                    }
+                    case 2: {
                         boolean text = !prefs.getBoolean("text_mode", false);
                         prefs.edit().putBoolean("text_mode", text).apply();
                         setTextMode(text);
                         break;
-                    case 3:
+                    }
+                    case 3: {
                         boolean js = !prefs.getBoolean("js_disabled", false);
                         prefs.edit().putBoolean("js_disabled", js).apply();
                         setJavaScriptEnabled(!js);
                         break;
-                        /*
-                    case 4:
-                        toggleF12();
-                        dialog.dismiss();
-                        break;
-                        */
+                    }
                     case 4:
                         showEditSourceDialog();
                         break;
                     case 5:
                         toggleSearchFloat();
-                        dialog.dismiss();
                         break;
                     case 6:
                         showCrawlDialog();
                         break;
-                    case 7:
+                    case 7: {
                         Intent intent = new Intent(MainActivity.this, DownloadActivity.class);
                         startActivity(intent);
                         break;
-                    case 8:
-                        intent = new Intent(MainActivity.this, ProtocolConnectActivity.class);
+                    }
+                    case 8: {
+                        Intent intent = new Intent(MainActivity.this, ProtocolConnectActivity.class);
                         startActivity(intent);
                         break;
+                    }
                 }
-            })
+            });
+            
+            layout.addView(row);
+            
+            // 分隔线
+            if (i < menuItems.length - 1) {
+                View divider = new View(this);
+                divider.setBackgroundColor(0xFFE0E0E0);
+                divider.setLayoutParams(new LinearLayout.LayoutParams(-1, 1));
+                divider.setPadding(48, 0, 0, 0);
+                layout.addView(divider);
+            }
+        }
+        
+        new AlertDialog.Builder(MainActivity.this)
+            .setTitle("更多")
+            .setView(layout)
             .setNegativeButton("关闭", null)
             .show();
     }
     
     private void showCrawlDialog() {
-        final String[] crawlItems = {
-            "查看网页源码",
-            "下载网页源码",
-            "递归爬取网站"
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(16, 8, 16, 8);
+        
+        String[][] items = {
+            {"查看网页源码", "ic_source"},
+            {"下载网页源码", "ic_download_mgr"},
+            {"递归爬取网站", "ic_crawl"}
         };
         
-        new AlertDialog.Builder(MainActivity.this)
-            .setTitle("爬取")
-            .setItems(crawlItems, (dialog, which) -> {
-                switch (which) {
+        for (int i = 0; i < items.length; i++) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setPadding(12, 16, 12, 16);
+            row.setLayoutParams(new LinearLayout.LayoutParams(-1, -2));
+            row.setClickable(true);
+            row.setFocusable(true);
+            row.setBackgroundResource(android.R.drawable.list_selector_background);
+            
+            ImageView iconView = new ImageView(this);
+            int iconRes = getResources().getIdentifier(items[i][1], "drawable", getPackageName());
+            if (iconRes != 0) iconView.setImageResource(iconRes);
+            iconView.setColorFilter(0xFF757575);
+            iconView.setLayoutParams(new LinearLayout.LayoutParams(36, 36));
+            iconView.setPadding(0, 0, 16, 0);
+            row.addView(iconView);
+            
+            TextView labelView = new TextView(this);
+            labelView.setText(items[i][0]);
+            labelView.setTextSize(16);
+            labelView.setTextColor(0xFF212121);
+            labelView.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
+            row.addView(labelView);
+            
+            final int index = i;
+            row.setOnClickListener(v -> {
+                switch (index) {
                     case 0:
                         loadWithSafeBrowsing("javascript:XF.showSource(document.documentElement.outerHTML);");
                         break;
@@ -1155,14 +1247,25 @@ public void onPageFinished(WebView view, String url) {
                         } catch (Exception e) {}
                         loadWithSafeBrowsing("javascript:XF.downloadSource('" + domain + "', document.documentElement.outerHTML);");
                         break;
-                        
                     case 2:
                         showCrawlSettingsDialog();
                         break;
-                        
                 }
-                dialog.dismiss();
-            })
+            });
+            layout.addView(row);
+            
+            if (i < items.length - 1) {
+                View divider = new View(this);
+                divider.setBackgroundColor(0xFFE0E0E0);
+                divider.setLayoutParams(new LinearLayout.LayoutParams(-1, 1));
+                divider.setPadding(52, 0, 0, 0);
+                layout.addView(divider);
+            }
+        }
+        
+        new AlertDialog.Builder(MainActivity.this)
+            .setTitle("爬取")
+            .setView(layout)
             .setNegativeButton("返回", null)
             .show();
     }

@@ -93,39 +93,43 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="center"
         android:layout_marginTop="20dp"
         android:layout_marginBottom="20dp">
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_export"
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:text="导出完整日志"
-            android:textColor="#FFFFFF"
+            android:src="@drawable/ic_export"
+            android:scaleType="center"
             android:background="#4CAF50"
-            android:layout_marginRight="5dp" />
+            android:layout_marginRight="5dp"
+            android:contentDescription="导出日志" />
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_restart"
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:text="重启应用"
-            android:textColor="#FFFFFF"
+            android:src="@drawable/ic_restart"
+            android:scaleType="center"
             android:background="@color/xf_primary"
             android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp" />
+            android:layout_marginRight="5dp"
+            android:contentDescription="重启应用" />
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_exit"
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:text="关闭应用"
-            android:textColor="#FFFFFF"
+            android:src="@drawable/ic_exit"
+            android:scaleType="center"
             android:background="@color/xf_error"
-            android:layout_marginLeft="5dp" />
+            android:layout_marginLeft="5dp"
+            android:contentDescription="关闭应用" />
 
     </LinearLayout>
 

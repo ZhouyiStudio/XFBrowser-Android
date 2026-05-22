@@ -199,12 +199,12 @@ public class SettingsActivity extends Activity {
 
         row.addView(textLayout);
 
-        // 右箭头 ›
-        TextView arrowView = new TextView(this);
-        arrowView.setText("›");
-        arrowView.setTextSize(24);
-        arrowView.setTextColor(0xFFBDBDBD);
-        arrowView.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        // 右箭头图标
+        ImageView arrowView = new ImageView(this);
+        arrowView.setImageResource(R.drawable.ic_forward);
+        arrowView.setColorFilter(0xFFBDBDBD);
+        arrowView.setLayoutParams(new LinearLayout.LayoutParams(24, 24));
+        arrowView.setScaleType(ImageView.ScaleType.CENTER);
         row.addView(arrowView);
 
         return row;
@@ -305,12 +305,12 @@ public class SettingsActivity extends Activity {
         buttonBar.setOrientation(LinearLayout.HORIZONTAL);
         buttonBar.setPadding(0, 20, 0, 0);
 
-        Button clearAllBtn = new Button(this);
-        clearAllBtn.setText("全部删除");
-        clearAllBtn.setTextColor(COLOR_SURFACE);
+        ImageButton clearAllBtn = new ImageButton(this);
+        clearAllBtn.setImageResource(R.drawable.ic_close);
+        clearAllBtn.setScaleType(ImageView.ScaleType.CENTER);
         clearAllBtn.setBackgroundColor(0xFFE53935);
-        clearAllBtn.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
-        clearAllBtn.setPadding(8, 12, 8, 12);
+        clearAllBtn.setColorFilter(0xFFFFFFFF);
+        clearAllBtn.setLayoutParams(new LinearLayout.LayoutParams(0, 50, 1));
         clearAllBtn.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
                     .setTitle("全部删除")
@@ -333,12 +333,12 @@ public class SettingsActivity extends Activity {
         btnSpacer.setLayoutParams(new LinearLayout.LayoutParams(16, 1));
         buttonBar.addView(btnSpacer);
 
-        Button closeBtn = new Button(this);
-        closeBtn.setText("关闭");
-        closeBtn.setTextColor(COLOR_PRIMARY);
+        ImageButton closeBtn = new ImageButton(this);
+        closeBtn.setImageResource(R.drawable.ic_back);
+        closeBtn.setScaleType(ImageView.ScaleType.CENTER);
         closeBtn.setBackgroundColor(COLOR_PRIMARY_LIGHT_BG);
-        closeBtn.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
-        closeBtn.setPadding(8, 12, 8, 12);
+        closeBtn.setColorFilter(COLOR_PRIMARY);
+        closeBtn.setLayoutParams(new LinearLayout.LayoutParams(0, 50, 1));
         closeBtn.setOnClickListener(v -> {
             if (historyDialog != null) {
                 historyDialog.dismiss();
