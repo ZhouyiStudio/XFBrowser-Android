@@ -558,6 +558,13 @@ public class SettingsActivity extends Activity {
             dialogLayout.setPadding(24, 24, 24, 24);
             dialogLayout.setGravity(android.view.Gravity.CENTER);
 
+            // 先创建 Dialog，保存引用以便点击后关闭
+            AlertDialog colorDialog = new AlertDialog.Builder(this)
+                    .setTitle(label)
+                    .setView(dialogLayout)
+                    .setPositiveButton("取消", null)
+                    .create();
+
             for (int i = 0; i < colorValues.length; i++) {
                 final int index = i;
                 final String colorStr = colorValues[i];
@@ -585,33 +592,18 @@ public class SettingsActivity extends Activity {
                     swatch.setBackground(border);
                 }
 
+                final AlertDialog dialogRef = colorDialog;
                 swatch.setOnClickListener(sv -> {
                     prefs.edit().putString(key, colorStr).apply();
                     updateColorPreview(colorPreview, colorStr);
                     Intent intent = new Intent("com.xuanfeng.browser." + key.toUpperCase() + "_CHANGED");
                     sendBroadcast(intent);
-                    // 关闭弹窗
-                    if (sv.getParent() != null && sv.getParent() instanceof android.app.Dialog) {
-                        ((android.app.Dialog) sv.getParent()).dismiss();
-                    }
-                    // 尝试找父对话框
-                    android.view.ViewParent parent = sv.getParent();
-                    while (parent != null) {
-                        if (parent instanceof android.app.Dialog) {
-                            ((android.app.Dialog) parent).dismiss();
-                            break;
-                        }
-                        parent = parent.getParent();
-                    }
+                    dialogRef.dismiss(); // 关闭弹窗
                 });
                 dialogLayout.addView(swatch);
             }
 
-            new AlertDialog.Builder(this)
-                    .setTitle(label)
-                    .setView(dialogLayout)
-                    .setPositiveButton("取消", null)
-                    .show();
+            colorDialog.show();
         });
 
         valueContainer.addView(colorPreview);
