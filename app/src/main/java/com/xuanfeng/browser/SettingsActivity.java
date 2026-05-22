@@ -579,7 +579,7 @@ public class SettingsActivity extends Activity {
                     GradientDrawable border = new GradientDrawable();
                     border.setShape(GradientDrawable.OVAL);
                     border.setStroke(4, 0xFF1976D2);
-                    int bgColor = Color.parseColor(colorStr);
+                    int bgColor = safeParseColor(colorStr);
                     border.setColor(bgColor);
                     swatch.setImageDrawable(null);
                     swatch.setBackground(border);
@@ -620,9 +620,18 @@ public class SettingsActivity extends Activity {
         layout.addView(container);
     }
 
+    // 将 0x... 格式转为 #... 格式，兼容两种写法
+    private int safeParseColor(String colorStr) {
+        if (colorStr == null) colorStr = "#FF1565C0";
+        if (colorStr.startsWith("0x") || colorStr.startsWith("0X")) {
+            colorStr = "#" + colorStr.substring(2);
+        }
+        return Color.parseColor(colorStr);
+    }
+
     private void updateColorPreview(ImageView view, String colorHex) {
         try {
-            int color = Color.parseColor(colorHex);
+            int color = safeParseColor(colorHex);
             GradientDrawable circle = new GradientDrawable();
             circle.setShape(GradientDrawable.OVAL);
             circle.setColor(color);
