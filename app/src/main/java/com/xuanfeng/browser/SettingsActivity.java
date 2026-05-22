@@ -58,6 +58,11 @@ public class SettingsActivity extends Activity {
                 "url_mode", "always",
                 new String[]{"始终显示网址", "选中时显示网址"},
                 new String[]{"always", "on_focus"});
+        addDivider(browseCard);
+        addPickerItem(browseCard, "网络模式", "",
+                "network_mode", "internet",
+                new String[]{"Internet", "Xuanfeng Network"},
+                new String[]{"internet", "xf"});
         root.addView(browseCard);
 
         // ====== 界面设置 ======
@@ -66,6 +71,21 @@ public class SettingsActivity extends Activity {
         addDivider(uiCard);
         addSwitchItem(uiCard, "选中网址栏时全选", "点击网址栏自动全选文字", "select_all_on_focus", true);
         root.addView(uiCard);
+
+        // ====== 颜色设置 ======
+        LinearLayout colorCard = createCard("颜色设置");
+        addColorItem(colorCard, "主题色", "xf_primary", "0xFF1565C0",
+                new String[]{"蓝色", "红色", "绿色", "紫色", "橙色", "青色", "灰色"},
+                new String[]{"0xFF1565C0", "0xFFE53935", "0xFF43A047", "0xFF7B1FA2", "0xFFEF6C00", "0xFF00ACC1", "0xFF757575"});
+        addDivider(colorCard);
+        addColorItem(colorCard, "背景色", "xf_background", "0xFFF5F5F5",
+                new String[]{"浅灰", "白色", "深色"},
+                new String[]{"0xFFF5F5F5", "0xFFFFFFFF", "0xFF212121"});
+        addDivider(colorCard);
+        addColorItem(colorCard, "工具栏图标色", "xf_toolbar_icon", "0xFF333333",
+                new String[]{"深灰", "黑色", "蓝色", "白色"},
+                new String[]{"0xFF333333", "0xFF000000", "0xFF1565C0", "0xFFFFFFFF"});
+        root.addView(colorCard);
 
         // ====== 数据管理 ======
         LinearLayout dataCard = createCard("数据管理");

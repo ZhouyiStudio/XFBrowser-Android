@@ -73,7 +73,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
-import android.widget.Spinner;
 import android.widget.ArrayAdapter;
 
 public class MainActivity extends Activity {
@@ -133,6 +132,7 @@ public class MainActivity extends Activity {
     // BroadcastReceiver 引用（用于在 onDestroy 中注销）
     private BroadcastReceiver logReceiver;
     private BroadcastReceiver titleHideReceiver;
+    private BroadcastReceiver toolboxReceiver;
     
 
     private LinearLayout historyPage;
@@ -140,8 +140,6 @@ public class MainActivity extends Activity {
     private ArrayAdapter<String> historyPageAdapter;
     
     private String currentXfUrl = "";
-    
-    private Spinner spinnerNetwork;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,6 +157,24 @@ public class MainActivity extends Activity {
             }
         };
         registerReceiver(logReceiver, new IntentFilter("com.xuanfeng.browser.LOG_SETTING_CHANGED"));
+        
+        // 工具箱广播
+        toolboxReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if ("com.xuanfeng.browser.TOOLBOX_ACTION".equals(intent.getAction())) {
+                    String action = intent.getStringExtra("action");
+                    if ("EDIT_SOURCE".equals(action)) {
+                        showEditSourceDialog();
+                    } else if ("FIND_IN_PAGE".equals(action)) {
+                        toggleSearchFloat();
+                    } else if ("CRAWL".equals(action)) {
+                        showCrawlDialog();
+                    }
+                }
+            }
+        };
+        registerReceiver(toolboxReceiver, new IntentFilter("com.xuanfeng.browser.TOOLBOX_ACTION"));
         
         // 初始化
         prefs = getSharedPreferences("settings", MODE_PRIVATE);
@@ -232,49 +248,14 @@ public class MainActivity extends Activity {
         if (titleHideReceiver != null) {
             unregisterReceiver(titleHideReceiver);
         }
+        if (toolboxReceiver != null) {
+            unregisterReceiver(toolboxReceiver);
+        }
     }
 
     private void initViews() {
     webView = findViewById(R.id.webview);
     etUrl = findViewById(R.id.et_url);
-    
-    spinnerNetwork = findViewById(R.id.spinner_network);
-if (spinnerNetwork != null) {
-    String[] shortModes = {"Net", "XF"};
-    String[] fullModes = {"Internet", "Xuanfeng Network"};
-    
-    ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, shortModes) {
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View view = super.getView(position, convertView, parent);
-            if (view != null) {
-                TextView text = view.findViewById(android.R.id.text1);
-                if (text != null) {
-                    text.setText(shortModes[position]);
-                    text.setTextSize(12);
-                }
-            }
-            return view;
-        }
-        
-        @Override
-        public View getDropDownView(int position, View convertView, ViewGroup parent) {
-            View view = super.getDropDownView(position, convertView, parent);
-            if (view != null) {
-                TextView text = view.findViewById(android.R.id.text1);
-                if (text != null) {
-                    text.setText(fullModes[position]);
-                    text.setTextSize(14);
-                }
-            }
-            return view;
-        }
-    };
-    
-    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-    spinnerNetwork.setAdapter(adapter);
-    spinnerNetwork.setSelection(0);
-}
     
     
     btnBack = findViewById(R.id.btn_back);
@@ -282,7 +263,7 @@ if (spinnerNetwork != null) {
     btnRefresh = findViewById(R.id.btn_refresh);
     btnDesktop = findViewById(R.id.btn_desktop);
     btnSettings = findViewById(R.id.btn_settings);
-    btnMenu = findViewById(R.id.btn_menu);
+    btnMenu = findViewById(R.id.btn_toolbox);
     btnTabs = findViewById(R.id.btn_tabs);
     tvTabCount = findViewById(R.id.tv_tab_count);
     webviewContainer = findViewById(R.id.webview_container);
@@ -386,13 +367,8 @@ private String getSearchUrl(String encoded) {
 }
 
 private String getCurrentNetworkMode() {
-    if (spinnerNetwork != null) {
-        int position = spinnerNetwork.getSelectedItemPosition();
-        if (position == 1) {
-            return "xf";
-        }
-    }
-    return "internet";
+    SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
+    return prefs.getString("network_mode", "internet");
 }
 
 
@@ -949,6 +925,13 @@ public void onPageFinished(WebView view, String url) {
             }
         });
         
+        btnForward.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (getCurrentWebView().canGoForward()) getCurrentWebView().goForward();
+            }
+        });
+        
         btnRefresh.setOnClickListener(new View.OnClickListener() {
     @Override
     public void onClick(View v) {
@@ -994,7 +977,8 @@ public void onPageFinished(WebView view, String url) {
         btnMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showMenuDialog();
+                Intent intent = new Intent(MainActivity.this, ToolboxActivity.class);
+                startActivity(intent);
             }
         });
         

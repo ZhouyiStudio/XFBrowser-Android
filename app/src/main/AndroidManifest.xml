@@ -41,6 +41,7 @@
             android:exported="false" />
 			
         <activity android:name=".DownloadActivity" />
+        <activity android:name=".ToolboxActivity" />
 		
     </application>
 
