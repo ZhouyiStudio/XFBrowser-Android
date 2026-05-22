@@ -12,8 +12,9 @@ import android.widget.ListView;
 import android.widget.ArrayAdapter;
 import java.util.List;
 import android.view.View;
-import android.graphics.drawable.GradientDrawable;
 import android.graphics.Typeface;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 
 public class SettingsActivity extends Activity {
     private SharedPreferences prefs;
@@ -506,5 +507,136 @@ public class SettingsActivity extends Activity {
         container.addView(textLayout);
         container.addView(valueContainer);
         layout.addView(container);
+    }
+
+    private void addColorItem(LinearLayout layout, String label,
+                               String key, String defaultColor,
+                               String[] displayNames, String[] colorValues) {
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.HORIZONTAL);
+        container.setPadding(0, 16, 0, 16);
+        container.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        LinearLayout textLayout = new LinearLayout(this);
+        textLayout.setOrientation(LinearLayout.VERTICAL);
+        textLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView labelView = new TextView(this);
+        labelView.setText(label);
+        labelView.setTextSize(16);
+        labelView.setTextColor(COLOR_TEXT_PRIMARY);
+        textLayout.addView(labelView);
+
+        // 右侧颜色预览区
+        LinearLayout valueContainer = new LinearLayout(this);
+        valueContainer.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        valueContainer.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        valueContainer.setPadding(16, 0, 0, 0);
+
+        // 颜色圆形预览
+        final ImageView colorPreview = new ImageView(this);
+        int previewSize = 36;
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(previewSize, previewSize);
+        colorPreview.setLayoutParams(previewParams);
+        colorPreview.setScaleType(ImageView.ScaleType.CENTER);
+        colorPreview.setClickable(true);
+        colorPreview.setFocusable(true);
+
+        // 设置初始颜色
+        String currentColor = prefs.getString(key, defaultColor);
+        updateColorPreview(colorPreview, currentColor);
+
+        colorPreview.setOnClickListener(v -> {
+            // 构建颜色选项弹窗
+            LinearLayout dialogLayout = new LinearLayout(this);
+            dialogLayout.setOrientation(LinearLayout.HORIZONTAL);
+            dialogLayout.setPadding(24, 24, 24, 24);
+            dialogLayout.setGravity(android.view.Gravity.CENTER);
+
+            for (int i = 0; i < colorValues.length; i++) {
+                final int index = i;
+                final String colorStr = colorValues[i];
+                ImageView swatch = new ImageView(this);
+                int swatchSize = 48;
+                LinearLayout.LayoutParams swatchParams = new LinearLayout.LayoutParams(swatchSize, swatchSize);
+                swatchParams.setMargins(8, 0, 8, 0);
+                swatch.setLayoutParams(swatchParams);
+                swatch.setScaleType(ImageView.ScaleType.CENTER);
+                swatch.setClickable(true);
+                swatch.setFocusable(true);
+
+                // 绘制颜色圆形
+                updateColorPreview(swatch, colorStr);
+
+                // 选中标记
+                if (colorStr.equals(prefs.getString(key, defaultColor))) {
+                    // 加边框表示选中
+                    GradientDrawable border = new GradientDrawable();
+                    border.setShape(GradientDrawable.OVAL);
+                    border.setStroke(4, 0xFF1976D2);
+                    int bgColor = Color.parseColor(colorStr);
+                    border.setColor(bgColor);
+                    swatch.setImageDrawable(null);
+                    swatch.setBackground(border);
+                }
+
+                swatch.setOnClickListener(sv -> {
+                    prefs.edit().putString(key, colorStr).apply();
+                    updateColorPreview(colorPreview, colorStr);
+                    Intent intent = new Intent("com.xuanfeng.browser." + key.toUpperCase() + "_CHANGED");
+                    sendBroadcast(intent);
+                    // 关闭弹窗
+                    if (sv.getParent() != null && sv.getParent() instanceof android.app.Dialog) {
+                        ((android.app.Dialog) sv.getParent()).dismiss();
+                    }
+                    // 尝试找父对话框
+                    android.view.ViewParent parent = sv.getParent();
+                    while (parent != null) {
+                        if (parent instanceof android.app.Dialog) {
+                            ((android.app.Dialog) parent).dismiss();
+                            break;
+                        }
+                        parent = parent.getParent();
+                    }
+                });
+                dialogLayout.addView(swatch);
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle(label)
+                    .setView(dialogLayout)
+                    .setPositiveButton("取消", null)
+                    .show();
+        });
+
+        valueContainer.addView(colorPreview);
+        container.addView(textLayout);
+        container.addView(valueContainer);
+        layout.addView(container);
+    }
+
+    private void updateColorPreview(ImageView view, String colorHex) {
+        try {
+            int color = Color.parseColor(colorHex);
+            GradientDrawable circle = new GradientDrawable();
+            circle.setShape(GradientDrawable.OVAL);
+            circle.setColor(color);
+            // 加浅边框以便白色颜色可见
+            circle.setStroke(1, 0x44000000);
+            view.setBackground(circle);
+            view.setImageDrawable(null);
+        } catch (Exception e) {
+            // fallback
+            GradientDrawable circle = new GradientDrawable();
+            circle.setShape(GradientDrawable.OVAL);
+            circle.setColor(0xFF1565C0);
+            view.setBackground(circle);
+            view.setImageDrawable(null);
+        }
     }
 }
