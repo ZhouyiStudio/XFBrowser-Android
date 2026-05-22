@@ -665,7 +665,7 @@ public boolean shouldOverrideUrlLoading(WebView view, String url) {
             @Override
 public void onPageFinished(WebView view, String url) {
     super.onPageFinished(view, url);
-    btnRefresh.setText("刷新");
+    btnRefresh.setImageResource(R.drawable.ic_refresh);
     // 网址栏有焦点时不更新
     if (etUrl.hasFocus()) {
         btnBack.setEnabled(view.canGoBack());
@@ -715,10 +715,10 @@ public void onPageFinished(WebView view, String url) {
         progressBar.setProgress(newProgress);
         if (newProgress < 100) {
             progressBar.setVisibility(View.VISIBLE);
-            btnRefresh.setText("×");
+            btnRefresh.setImageResource(R.drawable.ic_stop);
         } else {
             progressBar.setVisibility(View.GONE);
-            btnRefresh.setText("刷新");
+            btnRefresh.setImageResource(R.drawable.ic_refresh);
         }
     }
     
@@ -2194,8 +2194,8 @@ private void findInEditor(EditText editText, String keyword) {
         btnSearch.setText("开始搜索");
         btnSearch.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
         btnSearch.setOnClickListener(v -> performPageSearch());
-        Button btnRefresh = new Button(this);
-        btnRefresh.setText("刷新");
+        ImageButton btnRefresh = new ImageButton(this);
+        btnRefresh.setImageResource(R.drawable.ic_refresh);
         btnRefresh.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
         
         btnRefresh.setOnClickListener(v -> {
