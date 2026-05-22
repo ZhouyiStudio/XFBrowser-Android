@@ -2609,7 +2609,7 @@ historyPage.setVisibility(View.GONE);
                         "var style = document.createElement('style');" +
                         "style.type = 'text/css';" +
                         "style.id = 'xf-reading-mode-style';" +
-                        "style.textContent = " + JSON.stringify(css) + ";" +
+                        "style.textContent = '" + css + "';" +
                         "document.head.appendChild(style);" +
                         "})()";
                 wv.loadUrl(js);
