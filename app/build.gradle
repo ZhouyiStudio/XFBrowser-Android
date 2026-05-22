@@ -2,6 +2,15 @@ plugins {
     id 'com.android.application'
 }
 
+def getGitBranchName() {
+    def branch = ""
+    def proc = "git rev-parse --abbrev-ref HEAD".execute()
+    proc.in.eachLine { line -> branch = line }
+    proc.err.eachLine { line -> println line }
+    proc.waitFor()
+    return branch
+}
+
 android {
     namespace "com.xuanfeng.browser"
     compileSdk 34
@@ -36,9 +45,16 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            def branch = getGitBranchName()
+            outputFileName = "XFBrowser-${branch}-dev.apk"
+        }
+    }
 }
 
 dependencies {
-	// CodeAssist does NOT support adding dependencies here,
-	// try using the library manager instead
+ // CodeAssist does NOT support adding dependencies here,
+ // try using the library manager instead
 }
