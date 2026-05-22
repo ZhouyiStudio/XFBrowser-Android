@@ -952,7 +952,7 @@ public void onPageFinished(WebView view, String url) {
         btnRefresh.setOnClickListener(new View.OnClickListener() {
     @Override
     public void onClick(View v) {
-        if (getCurrentWebView() != null && getCurrentWebView().isLoading()) {
+        if (getCurrentWebView() != null && progressBar.getVisibility() == View.VISIBLE) {
             getCurrentWebView().stopLoading();
             progressBar.setVisibility(View.GONE);
             btnRefresh.setBackgroundResource(R.drawable.ic_refresh);
