@@ -2,14 +2,7 @@ plugins {
     id 'com.android.application'
 }
 
-def getGitShortHash() {
-    def hash = ""
-    def proc = "git rev-parse --short HEAD".execute()
-    proc.in.eachLine { line -> hash = line }
-    proc.err.eachLine { line -> println line }
-    proc.waitFor()
-    return hash
-}
+import org.gradle.api.provider.Provider
 
 android {
     namespace "com.xuanfeng.browser"
@@ -46,10 +39,14 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    applicationVariants.all { variant ->
-        variant.outputs.all {
-            def hash = getGitShortHash()
-            outputFileName = "XFBrowser-${hash}-dev.apk"
+    applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach { output ->
+            def gitHashProvider = providers.exec {
+                commandLine("git", "rev-parse", "--short", "HEAD")
+            }.standardOutput.asText.map { it.trim() }
+            output.outputFileName = gitHashProvider.map { hash ->
+                "XFBrowser-${hash}-dev.apk"
+            }
         }
     }
 }
