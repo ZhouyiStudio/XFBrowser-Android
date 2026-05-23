@@ -32,10 +32,19 @@ jobs:
         run: |
           sdkmanager "platforms;android-34" "build-tools;34.0.0" --sdk_root=$ANDROID_SDK_ROOT
 
+      - name: 解码密钥库
+        run: |
+          mkdir -p android-keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android-keystore/com.zhouyi.studio.keystore
+
       - name: 授予 gradlew 执行权限
         run: chmod +x gradlew
 
-      - name: 编译 Release APK
+      - name: 编译并签名 Release APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
         run: ./gradlew assembleRelease --no-daemon
 
       - name: 上传 APK 产物
