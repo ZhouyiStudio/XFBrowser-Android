@@ -103,7 +103,7 @@ jobs:
 
       - name: 获取当前时间（东八区）
         id: time
-        run: echo "time=$(TZ='Asia/Shanghai' date +'v.%Y%m%d.%H%M')" >> $GITHUB_OUTPUT
+        run: echo "time=$(TZ='Asia/Shanghai' date +'v.%Y%m%d.%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: 生成更新日志
         id: changelog
@@ -119,6 +119,11 @@ jobs:
             echo "$LOG"
             echo "EOF"
           } >> $GITHUB_OUTPUT
+
+      - name: 清理已存在的同名 tag（避免重跑冲突）
+        run: |
+          git tag -d ${{ steps.time.outputs.time }} 2>/dev/null || true
+          git push origin :refs/tags/${{ steps.time.outputs.time }} 2>/dev/null || true
 
       - name: 创建 Release
         uses: ncipollo/release-action@v1
