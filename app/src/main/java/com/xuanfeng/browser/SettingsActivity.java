@@ -20,7 +20,6 @@ import android.widget.Toast;
 
 public class SettingsActivity extends Activity {
     private SharedPreferences prefs;
-    private AlertDialog historyDialog;
 
     // 主题色（与 colors.xml 定义一致）
     private static final int COLOR_PRIMARY = 0xFF1565C0;
@@ -272,124 +271,6 @@ public class SettingsActivity extends Activity {
         return row;
     }
 
-    // ==================== 历史记录对话框 ====================
-
-    private void showHistoryDialog() {
-        List<String> historyList = HistoryManager.getInstance(this).getHistoryList();
-
-        if (historyList == null || historyList.isEmpty()) {
-            new AlertDialog.Builder(this)
-                    .setTitle("历史记录")
-                    .setMessage("暂无历史记录")
-                    .setPositiveButton("确定", null)
-                    .show();
-            return;
-        }
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(20, 20, 20, 20);
-
-        ListView listView = new ListView(this);
-        listView.setDivider(null);
-        listView.setPadding(0, 8, 0, 8);
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, historyList) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View view = super.getView(position, convertView, parent);
-                TextView textView = (TextView) view;
-                textView.setTextColor(COLOR_TEXT_PRIMARY);
-                textView.setTextSize(14);
-                textView.setPadding(24, 16, 24, 16);
-                // 圆角浅色背景
-                GradientDrawable gd = new GradientDrawable();
-                gd.setShape(GradientDrawable.RECTANGLE);
-                gd.setColor(0xFFF5F5F5);
-                gd.setCornerRadius(10);
-                textView.setBackground(gd);
-                textView.setPadding(24, 16, 24, 16);
-                return textView;
-            }
-        };
-        listView.setAdapter(adapter);
-
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            String url = historyList.get(position);
-            new AlertDialog.Builder(this)
-                    .setTitle("删除记录")
-                    .setMessage("删除 " + url + " ?")
-                    .setPositiveButton("删除", (dialog, which) -> {
-                        HistoryManager.getInstance(this).removeHistory(position);
-                        historyList.remove(position);
-                        adapter.notifyDataSetChanged();
-                        if (adapter.getCount() == 0 && historyDialog != null) {
-                            historyDialog.dismiss();
-                            Toast.makeText(this, "历史记录已清空", Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .setNegativeButton("取消", null)
-                    .show();
-        });
-
-        layout.addView(listView, new LinearLayout.LayoutParams(-1, 0, 1));
-
-        // 底部按钮栏
-        LinearLayout buttonBar = new LinearLayout(this);
-        buttonBar.setOrientation(LinearLayout.HORIZONTAL);
-        buttonBar.setPadding(0, 20, 0, 0);
-
-        ImageButton clearAllBtn = new ImageButton(this);
-        clearAllBtn.setImageResource(R.drawable.ic_close);
-        clearAllBtn.setScaleType(ImageView.ScaleType.CENTER);
-        clearAllBtn.setBackgroundColor(0xFFE53935);
-        clearAllBtn.setColorFilter(0xFFFFFFFF);
-        clearAllBtn.setLayoutParams(new LinearLayout.LayoutParams(0, 50, 1));
-        clearAllBtn.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("全部删除")
-                    .setMessage("确定删除所有历史记录吗？")
-                    .setPositiveButton("删除", (dialog, which) -> {
-                        HistoryManager.getInstance(this).clearHistory();
-                        adapter.clear();
-                        adapter.notifyDataSetChanged();
-                        if (historyDialog != null) {
-                            historyDialog.dismiss();
-                        }
-                        Toast.makeText(this, "历史记录已清空", Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton("取消", null)
-                    .show();
-        });
-        buttonBar.addView(clearAllBtn);
-
-        View btnSpacer = new View(this);
-        btnSpacer.setLayoutParams(new LinearLayout.LayoutParams(16, 1));
-        buttonBar.addView(btnSpacer);
-
-        ImageButton closeBtn = new ImageButton(this);
-        closeBtn.setImageResource(R.drawable.ic_back);
-        closeBtn.setScaleType(ImageView.ScaleType.CENTER);
-        closeBtn.setBackgroundColor(COLOR_PRIMARY_LIGHT_BG);
-        closeBtn.setColorFilter(COLOR_PRIMARY);
-        closeBtn.setLayoutParams(new LinearLayout.LayoutParams(0, 50, 1));
-        closeBtn.setOnClickListener(v -> {
-            if (historyDialog != null) {
-                historyDialog.dismiss();
-            }
-        });
-        buttonBar.addView(closeBtn);
-
-        layout.addView(buttonBar);
-
-        // ★ BUG FIX: 赋值给成员变量，而非声明新局部变量 ★
-        historyDialog = new AlertDialog.Builder(this)
-                .setTitle("历史记录")
-                .setView(layout)
-                .create();
-
-        historyDialog.show();
-    }
 
     private void showBookmarkDialog() {
         final List<BookmarkManager.BookmarkItem> bookmarks = BookmarkManager.getInstance(this).getBookmarks();

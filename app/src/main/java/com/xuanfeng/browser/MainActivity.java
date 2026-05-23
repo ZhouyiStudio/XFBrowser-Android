@@ -471,15 +471,15 @@ private String getCurrentNetworkMode() {
 
 
 private void refreshHistoryPage(String input) {
-    List<String> allHistory = HistoryManager.getInstance(this).getHistoryList();
-    List<String> filteredHistory = new ArrayList<>();
+    List<HistoryManager.HistoryItem> allHistory = HistoryManager.getInstance(this).getHistoryList();
+    List<HistoryManager.HistoryItem> filteredHistory = new ArrayList<>();
     
     if (input == null || input.isEmpty()) {
         filteredHistory.addAll(allHistory);
     } else {
-        for (String url : allHistory) {
-            if (url.toLowerCase().contains(input.toLowerCase())) {
-                filteredHistory.add(url);
+        for (HistoryManager.HistoryItem item : allHistory) {
+            if (item.url.toLowerCase().contains(input.toLowerCase())) {
+                filteredHistory.add(item);
             }
         }
     }
@@ -510,7 +510,8 @@ private void refreshHistoryPage(String input) {
     }
     
     // 添加历史记录
-    for (String url : filteredHistory) {
+    for (HistoryManager.HistoryItem item : filteredHistory) {
+        String url = item.url;
         if ("xf".equals(networkMode)) {
             // Xuanfeng 模式：历史记录转换为 xuanfeng:// 格式
             String displayUrl = url;
