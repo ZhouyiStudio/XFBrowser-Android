@@ -96,9 +96,9 @@ jobs:
           name: release-apk
           path: app/build/outputs/apk/release/
 
-      - name: 获取当前时间
+      - name: 获取当前时间（东八区）
         id: time
-        run: echo "time=$(date +'v.%Y%m%d.%H%M')" >> $GITHUB_OUTPUT
+        run: echo "time=$(TZ='Asia/Shanghai' date +'v.%Y%m%d.%H%M')" >> $GITHUB_OUTPUT
 
       - name: 创建 Release
         uses: ncipollo/release-action@v1
