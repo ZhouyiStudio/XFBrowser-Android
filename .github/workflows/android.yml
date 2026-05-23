@@ -90,6 +90,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - name: 检出代码（含完整历史）
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: 下载 APK 产物
         uses: actions/download-artifact@v4
         with:
@@ -100,11 +105,35 @@ jobs:
         id: time
         run: echo "time=$(TZ='Asia/Shanghai' date +'v.%Y%m%d.%H%M')" >> $GITHUB_OUTPUT
 
+      - name: 生成更新日志
+        id: changelog
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            LOG=$(git log --oneline --no-merges -20)
+          else
+            LOG=$(git log --oneline --no-merges "$LAST_TAG"..HEAD)
+          fi
+          {
+            echo 'log<<EOF'
+            echo "$LOG"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
       - name: 创建 Release
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.time.outputs.time }}
           name: ${{ steps.time.outputs.time }}
           artifacts: app/build/outputs/apk/release/*.apk
-          body: 自动编译发布 ${{ steps.time.outputs.time }}
+          body: |
+            ## 🚀 自动编译发布 ${{ steps.time.outputs.time }}
+
+            ### 📦 构建信息
+            - 构建时间：${{ steps.time.outputs.time }}
+            - 提交：${{ github.sha }}
+            - 分支：${{ github.ref_name }}
+
+            ### 📝 更新内容
+            ${{ steps.changelog.outputs.log }}
           token: ${{ secrets.GITHUB_TOKEN }}
