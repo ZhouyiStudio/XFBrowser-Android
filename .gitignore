@@ -16,3 +16,6 @@ local.properties
 
 # AtomCode local-scope configs (machine-specific)
 .atomcode/local/
+
+# Keystore (sensitive credentials - keep locally or use CI secrets)
+android-keystore/

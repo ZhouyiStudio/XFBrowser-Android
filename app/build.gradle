@@ -14,12 +14,29 @@ android {
         versionName "3.1"
     }
 
+    // Load keystore config: CI (env vars) → local.properties
+    def keystoreFile = rootProject.file('android-keystore/com.zhouyi.studio.keystore')
+    def keystorePassword = System.getenv('KEYSTORE_PASSWORD')
+    def keystoreAlias = System.getenv('KEYSTORE_ALIAS')
+    def keystoreKeyPassword = System.getenv('KEYSTORE_KEY_PASSWORD')
+
+    if (!keystorePassword) {
+        def localProps = rootProject.file('local.properties')
+        if (localProps.exists()) {
+            def props = new Properties()
+            props.load(localProps.newDataInputStream())
+            keystorePassword = props.getProperty('keystore.password')
+            keystoreAlias = props.getProperty('keystore.alias')
+            keystoreKeyPassword = props.getProperty('keystore.keyPassword')
+        }
+    }
+
     signingConfigs {
         release {
-            storeFile rootProject.file('android-keystore/com.zhouyi.studio.keystore')
-            storePassword 'Yao990815,'
-            keyAlias 'com.zhouyi.studio'
-            keyPassword 'Yao990815,'
+            storeFile keystoreFile
+            storePassword keystorePassword
+            keyAlias keystoreAlias
+            keyPassword keystoreKeyPassword
             v1SigningEnabled true
             v2SigningEnabled true
         }
