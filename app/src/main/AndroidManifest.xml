@@ -42,7 +42,8 @@
 			
         <activity android:name=".DownloadActivity" />
         <activity android:name=".ToolboxActivity" />
-		
+        <activity android:name=".HistoryActivity" />
+
     </application>
 
 </manifest>

@@ -11,10 +11,12 @@ import android.view.ContextThemeWrapper;
 import android.widget.ListView;
 import android.widget.ArrayAdapter;
 import java.util.List;
+import java.util.ArrayList;
 import android.view.View;
 import android.graphics.Typeface;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.widget.Toast;
 
 public class SettingsActivity extends Activity {
     private SharedPreferences prefs;
@@ -99,7 +101,9 @@ public class SettingsActivity extends Activity {
 
         // ====== 数据管理 ======
         LinearLayout dataCard = createCard("数据管理");
-        dataCard.addView(createClickableRow("历史记录管理", "查看和管理浏览历史", v -> showHistoryDialog()));
+        dataCard.addView(createClickableRow("书签管理", "查看和管理您的书签", v -> showBookmarkDialog()));
+        addDivider(dataCard);
+        dataCard.addView(createClickableRow("历史记录管理", "查看和管理浏览历史", v -> startActivity(new Intent(this, HistoryActivity.class))));
         root.addView(dataCard);
 
         // ====== 关于 ======
@@ -385,6 +389,74 @@ public class SettingsActivity extends Activity {
                 .create();
 
         historyDialog.show();
+    }
+
+    private void showBookmarkDialog() {
+        final List<BookmarkManager.BookmarkItem> bookmarks = BookmarkManager.getInstance(this).getBookmarks();
+
+        if (bookmarks == null || bookmarks.isEmpty()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("书签")
+                    .setMessage("暂无书签")
+                    .setPositiveButton("确定", null)
+                    .show();
+            return;
+        }
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(20, 20, 20, 20);
+
+        ListView listView = new ListView(this);
+        listView.setDivider(null);
+        listView.setPadding(0, 8, 0, 8);
+
+        List<String> displayList = new ArrayList<>();
+        for (BookmarkManager.BookmarkItem item : bookmarks) {
+            displayList.add(item.title + "\n" + item.url);
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_2, displayList) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                if (view instanceof TextView) {
+                    ((TextView) view).setTextColor(COLOR_TEXT_PRIMARY);
+                    ((TextView) view).setTextSize(14);
+                    ((TextView) view).setPadding(24, 12, 24, 12);
+                }
+                return view;
+            }
+        };
+        listView.setAdapter(adapter);
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            BookmarkManager.BookmarkItem item = bookmarks.get(position);
+            new AlertDialog.Builder(this)
+                    .setTitle("删除书签")
+                    .setMessage("删除 " + item.title + " ?")
+                    .setPositiveButton("删除", (dialog, which) -> {
+                        BookmarkManager.getInstance(this).removeBookmark(item.title, item.url);
+                        bookmarks.remove(position);
+                        displayList.remove(position);
+                        adapter.notifyDataSetChanged();
+                        if (adapter.getCount() == 0) {
+                            Toast.makeText(this, "书签已清空", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("取消", null)
+                    .show();
+        });
+
+        layout.addView(listView, new LinearLayout.LayoutParams(-1, -1));
+
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("书签管理")
+                .setView(layout)
+                .setPositiveButton("关闭", null)
+                .create();
+
+        dialog.show();
     }
 
     // ==================== 开关类设置项 ====================

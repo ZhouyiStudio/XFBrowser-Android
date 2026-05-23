@@ -149,6 +149,16 @@ public class MainActivity extends Activity {
     
     private String currentXfUrl = "";
     
+    // 全屏模式
+    private boolean isFullscreen = false;
+    
+    // 书签管理器
+    private BookmarkManager bookmarkManager;
+    
+    // 底部工具栏引用（用于全屏切换）
+    private LinearLayout bottomToolbar;
+    private LinearLayout urlBarContainer;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -349,6 +359,13 @@ public class MainActivity extends Activity {
     tvTabCount = findViewById(R.id.tv_tab_count);
     webviewContainer = findViewById(R.id.webview_container);
     progressBar = findViewById(R.id.progress_bar);
+    
+    // 初始化书签管理器
+    bookmarkManager = BookmarkManager.getInstance(this);
+    
+    // 获取容器引用用于全屏切换
+    bottomToolbar = findViewById(R.id.bottom_toolbar);
+    urlBarContainer = findViewById(R.id.url_bar_container);
     
 historyPage = findViewById(R.id.history_page);
 historyListView = findViewById(R.id.history_list_view);
@@ -758,6 +775,12 @@ public void onPageFinished(WebView view, String url) {
     btnForward.setEnabled(view.canGoForward());
     progressBar.setVisibility(View.GONE);
     
+    // 自动记录浏览历史（获取页面标题）
+    if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
+        String pageTitle = view.getTitle();
+        HistoryManager.getInstance(MainActivity.this).addHistory(url, pageTitle);
+    }
+    
     if (isCrawling) {
 //        saveCurrentPageForCrawl(url);
     }
@@ -1164,7 +1187,11 @@ public void onPageFinished(WebView view, String url) {
             {"页内查找", "", "ic_find_in_page"},
             {"爬取", "", "ic_crawl"},
             {"下载管理", "", "ic_download_mgr"},
-            {"PingHub", "", "ic_ping"}
+            {"PingHub", "", "ic_ping"},
+            {"全屏模式", "", "ic_desktop"},
+            {"分享网址", "", "ic_export"},
+            {"翻译页面", "", "ic_source"},
+            {"收藏书签", "", "ic_add"}
         };
         
         for (int i = 0; i < menuItems.length; i++) {
@@ -1266,6 +1293,22 @@ public void onPageFinished(WebView view, String url) {
                         startActivity(intent);
                         break;
                     }
+                    case 10: {
+                        toggleFullscreen();
+                        break;
+                    }
+                    case 11: {
+                        shareCurrentUrl();
+                        break;
+                    }
+                    case 12: {
+                        translateCurrentPage();
+                        break;
+                    }
+                    case 13: {
+                        toggleBookmark();
+                        break;
+                    }
                 }
             });
             
@@ -1288,6 +1331,66 @@ public void onPageFinished(WebView view, String url) {
             .show();
     }
     
+    // ==================== 新功能: 全屏 / 分享 / 翻译 / 书签 ====================
+    
+    private void toggleFullscreen() {
+        isFullscreen = !isFullscreen;
+        if (urlBarContainer != null) {
+            urlBarContainer.setVisibility(isFullscreen ? View.GONE : View.VISIBLE);
+        }
+        if (bottomToolbar != null) {
+            bottomToolbar.setVisibility(isFullscreen ? View.GONE : View.VISIBLE);
+        }
+        Toast.makeText(this, isFullscreen ? "全屏模式" : "退出全屏", Toast.LENGTH_SHORT).show();
+    }
+    
+    private void shareCurrentUrl() {
+        WebView wv = getCurrentWebView();
+        String url = wv != null ? wv.getUrl() : "";
+        String title = wv != null ? wv.getTitle() : "";
+        if (url == null || url.isEmpty()) {
+            Toast.makeText(this, "没有可分享的网址", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("text/plain");
+        share.putExtra(Intent.EXTRA_TEXT, title + "\n" + url);
+        startActivity(Intent.createChooser(share, "分享网址"));
+    }
+    
+    private void translateCurrentPage() {
+        WebView wv = getCurrentWebView();
+        String url = wv != null ? wv.getUrl() : "";
+        if (url == null || url.isEmpty()) {
+            Toast.makeText(this, "没有可翻译的页面", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            String encodedUrl = URLEncoder.encode(url, "UTF-8");
+            String translateUrl = "https://translate.google.com/translate?sl=auto&tl=zh-CN&u=" + encodedUrl;
+            wv.loadUrl(translateUrl);
+        } catch (UnsupportedEncodingException e) {
+            Toast.makeText(this, "翻译失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    private void toggleBookmark() {
+        WebView wv = getCurrentWebView();
+        String url = wv != null ? wv.getUrl() : "";
+        String title = wv != null ? wv.getTitle() : "";
+        if (url == null || url.isEmpty()) {
+            Toast.makeText(this, "没有当前网页", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (bookmarkManager.isBookmarked(url)) {
+            bookmarkManager.removeByUrl(url);
+            Toast.makeText(this, "已取消收藏", Toast.LENGTH_SHORT).show();
+        } else {
+            bookmarkManager.addBookmark(title, url);
+            Toast.makeText(this, "已添加到书签", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void showCrawlDialog() {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
