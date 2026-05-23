@@ -53,3 +53,16 @@ jobs:
           name: XFBrowser-APK
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+
+      - name: 获取当前时间
+        id: time
+        run: echo "time=$(date +'v.%Y%m%d.%H%M')" >> $GITHUB_OUTPUT
+
+      - name: 创建 Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.time.outputs.time }}
+          name: ${{ steps.time.outputs.time }}
+          artifacts: app/build/outputs/apk/release/*.apk
+          body: 自动编译发布 ${{ steps.time.outputs.time }}
+          token: ${{ secrets.GITHUB_TOKEN }}
